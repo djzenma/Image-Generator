@@ -10,23 +10,47 @@ Position = namedtuple('Position', 'left right')(0, 1)
 counter = 0
 
 
+def measures(category):  # returns Rescaling: div_x, div_y, Coordinates: div_x, height
+    if category == 'Man' or category == 'Woman':
+        div_x = 2.0
+        div_y = 0.8
+        coords_div_x = 2.2
+        coords_height = 80
+    elif category == 'Girl' or category == 'Boy':
+        div_x = 3
+        div_y = 1.4
+        coords_div_x = 2.5
+        coords_height = 220
+    elif category == 'Babyseat':
+        div_x = 3
+        div_y = 1.4
+        coords_div_x = 2.5
+        coords_height = 150
+    else:
+        div_x = 3
+        div_y = 2
+        coords_div_x = 2.5
+        coords_height = 220
+
+    return div_x, div_y, coords_div_x, coords_height
+
+
 # Paste a the item specified on the bg specified
 def generate_one(bg_file, item_file, output_file, img_size, item_coords):
     # Open the 2 images
     back_img = Image.open(bg_file)
     item = Image.open(item_file)
     category = item_file.split('/')[1]
-    # TODO::To be removed
-    if category == 'Man' or category == 'Woman' or category == 'Girl' or category == 'Boy':
-        div = 0.8
-    else:
-        div = 1.5
+
+    # TODO::To be refactored
+    div_x, div_y, _, height = measures(category)
     # Resize Them
-    back_img.resize((img_size.x, img_size.y))
-    item = item.resize((int(img_size.x / 2), int(img_size.y / div)))
+    back_img = back_img.resize((img_size.x, img_size.y), Image.ANTIALIAS)
+    item = item.resize((int(img_size.x / div_x), int(img_size.y / div_y)),  Image.ANTIALIAS)
 
     # Paste the item on the bg
-    back_img.paste(item, (item_coords.x, item_coords.y), item)
+    # TODO:: Change it to (item_coords.x, item_coords.y)
+    back_img.paste(item, (item_coords.x + 90, height), item)
 
     # Save the result
     back_img.save('outputs/' + output_file, quality=95)
@@ -45,15 +69,11 @@ def generate_all_items_fixed_pos(pos, bg_dir, items_dir, output_dir):
     for bg in bgs:  # For every background
         for i in range(0, len(items)):  # Paste every item
             # TODO:: To be removed
-            if category == 'Man' or category == 'Woman' or category == 'Girl' or category == 'Boy':
-                div = 2.2
-                height = 150
-            else:
-                div = 2.5
-                height = 210
+            _, _, div_coord_x, height = measures(category)
+
             # Specify output size & item size
             img_size = Coords(960, 640)
-            item_coord = Coords(pos * int(img_size.x/div), height)
+            item_coord = Coords(pos * int(img_size.x/div_coord_x), height)
             item_file = items_dir + '/' + str(items[i])
 
             # output directory
